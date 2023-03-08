@@ -84,7 +84,7 @@ def export(scrapped: list) -> None:
     
     filepath = Path(path+"/"+csv_file)
     filepath.parent.mkdir(parents = True, exist_ok = True)
-    df.to_csv(filepath, index = False)
+    df.to_excel(filepath, index = False)
     # writer = pd.ExcelWriter(path+"/"+csv_file,mode= "A")
     # df.to_excel(writer, sheet_name= "Cuadro")
     # writer.save()
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     
     content=[]
     for filename in glob.glob(os.path.join(path,'*.xml')):
-        print( "\n----------", filename.split('\\')[1],"-----\n")
+        print( "\n----------", filename.split(os.sep)[1],"-----\n")
         print(filename)
         scrapped = parse_xml(path)
         content.append(scrapped)
