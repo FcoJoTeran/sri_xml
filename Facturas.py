@@ -2,15 +2,35 @@ from bs4 import BeautifulSoup
 import os, glob
 import pandas as pd
 from pathlib import Path
-import csv
+import traceback
 
-path = 'Downloads/FACTURAS EJEMPLO'
+path = 'Downloads/FACTURAS'
 
 
 def parse_xml(path: str)-> dict:
     try:
         with open(os.path.join(os.getcwd(),filename),'r',encoding = 'utf-8') as f:
             file = f.read()
+            soup = BeautifulSoup(file,'xml')
+            if soup.comprobante is None:
+                listaSoup = soup  
+                listaImp = listaSoup.find_all("totalImpuesto")
+                numAut = listaSoup.find('claveAcceso').string
+                razSoc = listaSoup.find('razonSocial').string
+                numRuc = listaSoup.find('ruc').string
+                fecEmi = listaSoup.find('fechaEmision').string
+                tipoFact = 2
+                
+            else:
+                info = soup.comprobante.contents
+                listaSoup = BeautifulSoup("<comprobante>"+info[0]+"</comprobante>","lxml")
+                listaImp=listaSoup.find_all("totalimpuesto")
+                numAut = soup.numeroAutorizacion.string
+                razSoc = listaSoup.razonsocial.string
+                numRuc = listaSoup.ruc.string
+                fecEmi = listaSoup.fechaemision.string
+                tipoFact = 1
+                             
     except Exception as error:
         print(f"Hubo un error en el documento{filename}, se omite. {error}")
         return {
@@ -26,33 +46,29 @@ def parse_xml(path: str)-> dict:
             "Total sin descuento": subtotal_12 + subtotal_0 + subtotal_sin + subtotal_12 * 0.12
         }
 
-    soup = BeautifulSoup(file,'xml')     
-    
-    
-    listaSoup = BeautifulSoup("<comprobante>"+soup.comprobante.contents[0]+"</comprobante>","lxml")
-    
-    listaImp=listaSoup.find_all("totalimpuesto")
-    print(listaImp)
-    
-    numAut = soup.numeroAutorizacion.string
     subtotal_12 = 0
     subtotal_0 = 0
     subtotal_sin = 0
 
     for impuesto in listaImp:
-        if impuesto.codigoporcentaje.string == "2":
-            subtotal_12 = float(impuesto.baseimponible.string)
-        elif impuesto.codigoporcentaje.string == "0":
-            subtotal_0 = float(impuesto.baseimponible.string)
-        elif impuesto.codigoporcentaje.string == "6":
-            subtotal_sin = float(impuesto.baseimponible.string)
-        
-        
-        
+        if tipoFact == 1:
+            codPor = impuesto.codigoporcentaje
+            baseImp = impuesto.baseimponible
+        elif tipoFact == 2:
+            codPor = impuesto.codigoPorcentaje
+            baseImp = impuesto.baseImponible
+            
+        if codPor.string == "2":
+            subtotal_12 = float(baseImp.string)
+        elif codPor.string == "0":
+            subtotal_0 = float(baseImp.string)
+        elif codPor.string == "6":
+            subtotal_sin = float(baseImp.string)
+         
     return {
-        "Razon social": listaSoup.razonsocial.string,
-        "RUC del vendedor": listaSoup.ruc.string,
-        "Fecha de emision": listaSoup.fechaemision.string,
+        "Razon social": razSoc,
+        "RUC del vendedor": numRuc,
+        "Fecha de emision": fecEmi,
         "Numero de factura": numAut[-25:-22]+"-"+numAut[-22:-19]+"-"+numAut[-19:-10],
         "Numero de Autorizacion": numAut,
         "Subtotal 12%": subtotal_12,
@@ -64,11 +80,6 @@ def parse_xml(path: str)-> dict:
 
 def export(scrapped: list) -> None:
     csv_file = "CuadroImpuestos.xlsx"
-
-    # with open(csv_file,'w') as csvfile:
-    #     writer = csv.DictWriter(csvfile,fieldnames= scrapped[0].keys())
-    #     writer.writeheader()
-    #     writer.writerows(scrapped)
     df = pd.DataFrame(scrapped)
     
     df["RUC del vendedor"] = df["RUC del vendedor"].map("{}".format)
@@ -85,12 +96,6 @@ def export(scrapped: list) -> None:
     filepath = Path(path+"/"+csv_file)
     filepath.parent.mkdir(parents = True, exist_ok = True)
     df.to_excel(filepath, index = False)
-    # writer = pd.ExcelWriter(path+"/"+csv_file,mode= "A")
-    # df.to_excel(writer, sheet_name= "Cuadro")
-    # writer.save()
-    # with pd.ExcelWriter(path+"/"+csv_file, engine="openpyxl", if_sheet_exists="new",mode="a") as writer:
-    #     df.to_excel(writer, sheet_name="name", startrow=0, startcol=0)
-
 
 
 
@@ -100,8 +105,13 @@ if __name__ == "__main__":
     for filename in glob.glob(os.path.join(path,'*.xml')):
         print( "\n----------", filename.split(os.sep)[1],"-----\n")
         print(filename)
-        scrapped = parse_xml(path)
-        content.append(scrapped)
+        try:
+            scrapped = parse_xml(path)
+            content.append(scrapped)
+        except Exception as error:
+            print("Hubo un problema con la factura "+ filename.split(os.sep)[1])
+            print(error)
+            traceback.print_exc()
     
     for dic in content:
         print(dic)
