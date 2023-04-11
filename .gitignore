@@ -1,2 +1,4 @@
 Downloads/
+.DS_Store
 .venv
+.ruff_cache
