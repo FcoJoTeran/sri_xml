@@ -46,11 +46,8 @@ def parse_xml(path: str) -> dict:
             "Subtotal 12%": 0,
             "Subtotal 0%": 0,
             "Subtotal sin impuestos": 0,
-            "IVA 12%": subtotal_12 * 0.12,
-            "Total sin descuento": subtotal_12
-            + subtotal_0
-            + subtotal_sin
-            + subtotal_12 * 0.12,
+            "IVA 12%": 0,
+            "Total sin descuento": 0
         }
 
     subtotal_12 = 0
