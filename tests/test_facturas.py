@@ -15,7 +15,7 @@ def test_parse_xml_rosado():
     assert result["RUC del vendedor"] == "0990004196001"
     assert result["Fecha de emision"] == "06/01/2023"
     assert result["Numero de factura"] == "005-004-000533948"
-    assert result["Numero de Autorizacion"] == "0601202301099000419600120050040005339480053394812"
+    assert result["Numero de Autorizacion"] == "0601202301099000419600120050040005339480053394812"  # noqa: E501
     assert result["Subtotal 12%"] == 16.69
     assert result["Subtotal 0%"] == 47.68
     assert result["Subtotal sin impuestos"] == 0
@@ -35,7 +35,7 @@ def test_parse_xml_cafedetere():
     assert result["RUC del vendedor"] == "0992255404001"
     assert result["Fecha de emision"] == "11/01/2023"
     assert result["Numero de factura"] == "010-002-000001200"
-    assert result["Numero de Autorizacion"] == "1101202301099225540400120100020000012001234567819"
+    assert result["Numero de Autorizacion"] == "1101202301099225540400120100020000012001234567819"  # noqa: E501
     assert result["Subtotal 12%"] == 16.52
     assert result["Subtotal 0%"] == 0
     assert result["Subtotal sin impuestos"] == 0
