@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 path= "C:/Users/LENOVO/Downloads/ret-carlos2"
 
 
-def parse_xml_invoice(path: str) -> dict:
+def parse_xml(filename: str) -> dict:
     try:
         with open(os.path.join(os.getcwd(), filename), "r", encoding="utf-8") as f:
             file = f.read()
@@ -40,9 +40,9 @@ def parse_xml_invoice(path: str) -> dict:
         return {
             "Razon social": "ERROR",
             "RUC del vendedor": "00000",
-            "Fecha de emisión": "00000",
-            "Número de autorización": "00000",
-            "Número de factura": "00000",
+            "Fecha de emision": "00000",
+            "Numero de Autorizacion": "00000",
+            "Numero de factura": "00000",
             "Subtotal 12%": 0,
             "Subtotal 0%": 0,
             "Subtotal sin impuestos": 0,
@@ -175,7 +175,7 @@ def parse_xml_receipt(path: str) -> list:
             
             
 
-def export(scrapped: list, type:str) -> None:
+def export(scrapped: list, directory: str) -> None:
     if type == "Factura":
         csv_file = "CuadroFacturas.xlsx"
         df = pd.DataFrame(scrapped)
@@ -199,7 +199,7 @@ def export(scrapped: list, type:str) -> None:
         df["Valor Retenido"] = df["Valor Retenido"].round(2)
 
 
-    filepath = Path(path + "/" + csv_file)
+    filepath = Path(directory + "/" + csv_file)
     filepath.parent.mkdir(parents=True, exist_ok=True)
     df.to_excel(filepath, index=False)
 
@@ -212,7 +212,7 @@ if __name__ == "__main__":
         print(filename)
         try:
             if "Factura" in filename:
-                scrapped = parse_xml_invoice(filename)
+                scrapped = parse_xml(filename)
                 content_invoice.append(scrapped)
             elif "Comprobante" in filename:
                 scrapped = parse_xml_receipt(filename)
